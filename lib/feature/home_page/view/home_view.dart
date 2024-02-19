@@ -40,7 +40,7 @@ class HomePageView extends GetView<HomePageController> {
                     ),
                   ),
                   onPressed: () {},
-                  child: Text('Open Docx')),
+                  child: Text('Open DOCX')),
             ),
             const SizedBox(
               height: 20,
@@ -54,7 +54,7 @@ class HomePageView extends GetView<HomePageController> {
                     ),
                   ),
                   onPressed: () {},
-                  child: Text('Open Xls')),
+                  child: Text('Open XLS')),
             ),
             const SizedBox(
               height: 20,
