@@ -1,4 +1,6 @@
 import 'package:any_docs/core/constant/url_constant.dart';
+import 'package:any_docs/feature/docx_viewer/binding/docx_viewer_binding.dart';
+import 'package:any_docs/feature/docx_viewer/view/docx_viewer_view.dart';
 import 'package:any_docs/feature/home_page/binding/home_binding.dart';
 import 'package:any_docs/feature/home_page/view/home_view.dart';
 import 'package:any_docs/feature/pdf_viewer_view/binding/pdf_viewer_binding.dart';
@@ -14,4 +16,8 @@ List<GetPage> getPages = [
       name: RouteConstant.pdfViewerPage,
       page: () => PdfViewerPage(),
       binding: PdfViewerBinding()),
+  GetPage(
+      name: RouteConstant.docxViewerPage,
+      page: () => DocxViewerView(),
+      binding: DocxViewerBinding()),
 ];
