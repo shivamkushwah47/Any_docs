@@ -16,14 +16,15 @@ class HomePageView extends GetView<HomePageController> {
         title: const Text('Any Docs',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: Get.width * 0.55,
-              child: ElevatedButton(
+      body: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
                   style: ElevatedButton.styleFrom(
+                    minimumSize: Size(Get.width * 0.55, Get.height * 0.1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -50,51 +51,49 @@ class HomePageView extends GetView<HomePageController> {
                     }
                   },
                   child: const Text('Open PDF')),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            SizedBox(
-              width: Get.width * 0.55,
-              child: ElevatedButton(
+              ElevatedButton(
                   style: ElevatedButton.styleFrom(
+                    minimumSize: Size(Get.width * 0.55, Get.height * 0.1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onPressed: () {},
+                  onPressed: () async {
+                    FilePickerResult? result = await FilePicker.platform.pickFiles(
+                        allowMultiple: true,
+                        type: FileType.custom,
+                        allowedExtensions: ['JPEG','PNG']);
+                    var fileName = result?.names[0];
+                    if (result != null) {
+                      List<File> files = result.paths.map((path) => File(path!)).toList();
+                      Get.toNamed(RouteConstant.docxViewerPage,arguments: [files[0].path,fileName]);
+                    }
+                    else {
+                      // User canceled the picker
+                    }
+                  },
                   child: Text('Open DOCX')),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            SizedBox(
-              width: Get.width * 0.55,
-              child: ElevatedButton(
+              ElevatedButton(
                   style: ElevatedButton.styleFrom(
+                    minimumSize: Size(Get.width * 0.55, Get.height * 0.1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   onPressed: () {},
                   child: Text('Open XLS')),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            SizedBox(
-              width: Get.width * 0.55,
-              child: ElevatedButton(
+              ElevatedButton(
                   style: ElevatedButton.styleFrom(
+                    minimumSize: Size(Get.width * 0.55, Get.height * 0.1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   onPressed: () {},
                   child: Text('Convert Image to PDF')),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }

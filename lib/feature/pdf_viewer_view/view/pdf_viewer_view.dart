@@ -43,10 +43,14 @@ class PdfViewerPage extends GetView<PdfViewerController>{
          // _controller.complete(pdfViewController);
        },
        onPageChanged: (int? page, int? total) {
-         print('page change: $page/$total');
-         page != null ?
-         controller.currentPage .value = page+1 :
-         controller.currentPage.value = 0;
+         if(page != null && total != null){
+         print('page change: ${page++}/$total');
+         controller.currentPage.value = page+1;
+         }
+         else{
+           controller.currentPage.value = 0;
+         }
+
        },
      ),
    );
