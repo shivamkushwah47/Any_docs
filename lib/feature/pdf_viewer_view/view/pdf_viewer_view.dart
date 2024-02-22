@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'package:any_docs/feature/pdf_viewer_view/controller/pdf_viewer_controller.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:flutter/material.dart';
