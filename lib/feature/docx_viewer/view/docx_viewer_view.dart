@@ -10,6 +10,9 @@ class DocxViewerView extends GetView{
       appBar: AppBar(
         title: const Text('Docx',style: TextStyle(fontWeight: FontWeight.bold)),
       ),
+      body: Center(
+        child: Text('Docx Page'),
+      ),
     );
   }
 

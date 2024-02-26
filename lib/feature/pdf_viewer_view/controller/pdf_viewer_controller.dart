@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 
-class PdfViewerController extends GetxController{
-  dynamic arguments ;
+class PdfViewerController extends GetxController {
+  dynamic arguments;
 
   String filePath = '';
   String fileName = '';
