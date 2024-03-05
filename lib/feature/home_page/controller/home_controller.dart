@@ -14,12 +14,11 @@ import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:open_file/open_file.dart' as open_file;
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
-import 'package:image_picker/image_picker.dart' as pic;
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 
 class HomePageController extends GetxController {
-  // late StreamSubscription _intentSub;
+  
   final _sharedFiles = <SharedMediaFile>[];
   RxBool isPasswordProtected = false.obs;
   RxBool openGallery = false.obs;
@@ -30,7 +29,7 @@ class HomePageController extends GetxController {
   void onInit() {
     FlutterNativeSplash.remove();
 
-    // Listen to media sharing coming from outside the app while the app is in the memory.
+    
     ReceiveSharingIntent.getMediaStream().listen((value) {
       _sharedFiles.clear();
       _sharedFiles.addAll(value);
@@ -55,7 +54,7 @@ class HomePageController extends GetxController {
       debugPrint("getIntentDataStream error: $err");
     });
 
-    // Get the media sharing coming from outside the app while the app is closed.
+    
     ReceiveSharingIntent.getInitialMedia().then((value) async {
       _sharedFiles.clear();
       _sharedFiles.addAll(value);
@@ -92,12 +91,12 @@ class HomePageController extends GetxController {
         log('hexSignature.toUpperCase()');
         log('hex string: ${hexSignature.toUpperCase()}');
         return hexSignature.toUpperCase() ==
-            '255044462D312E34'; // PDF header signature
+            '255044462D312E34'; 
       }
 
       File file = File(files[0].path);
       List<int> bytes = await file.readAsBytes();
-      // Check if the PDF is encrypted
+      
       if (isEncrypted(bytes)) {
         isPasswordProtected.value = true;
       } else {
@@ -134,7 +133,7 @@ class HomePageController extends GetxController {
 
                           File file = File(name);
                           Uint8List bytes = await file.readAsBytes();
-                          // Convert bytes to ByteData
+                          
                           ByteData byteData = bytes.buffer.asByteData();
 
                           final ByteData data = byteData;
@@ -183,7 +182,7 @@ class HomePageController extends GetxController {
             ));
       }
     } else {
-      // User canceled the picker
+      
     }
   }
 
@@ -194,8 +193,8 @@ class HomePageController extends GetxController {
     if (openGallery.value == true) {
       final List<XFile> pickedFile = await picker.pickMultiImage(
           imageQuality: 100,
-          maxHeight: 1000, //  max height of images.
-          maxWidth: 1000); //  max width of images.
+          maxHeight: 1000, 
+          maxWidth: 1000); 
       if (pickedFile.isNotEmpty) {
         showLoader.value==true?showDialog(
           context: Get.overlayContext!,
@@ -211,17 +210,17 @@ class HomePageController extends GetxController {
         showLoader.value=true;
 
         for (var image in pickedFile) {
-          PdfPage page = document.pages.add(); //this will add page in pdf
+          PdfPage page = document.pages.add(); 
           final PdfImage bitImage = PdfBitmap(await _readImageData(image));
           page.graphics.drawImage(
               bitImage, Rect.fromLTWH(0, 0, page.size.width, page.size.height));
         }
         List<int> bytes = await document.save();
         document.dispose();
-        //Save the file and launch/download
+        
         saveAndLaunchFile(bytes, '${DateTime.now().toString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').trim()}.pdf');
       } else {
-        //todo: show snackBar
+        
       }
     } else {
       XFile? cameraFile = await picker.pickImage(source: ImageSource.camera);
@@ -238,27 +237,27 @@ class HomePageController extends GetxController {
           ),
         ): const Center();
 
-        PdfPage page = document.pages.add(); //this will add page in pdf
+        PdfPage page = document.pages.add(); 
         final PdfImage image = PdfBitmap(await _readImageData(cameraFile));
         page.graphics.drawImage(
             image, Rect.fromLTWH(0, 0, page.size.width, page.size.height));
         List<int> bytes = await document.save();
         document.dispose();
-        //Save the file and launch/download
+        
         saveAndLaunchFile(bytes, '${DateTime.now().toString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').trim()}.pdf');
       }
     }
-    // Get.back();
+    
   }
 
   Future<List<int>> _readImageData(name) async {
-    var data = await name!.readAsBytes(); // Converts the file to UInt8List
+    var data = await name!.readAsBytes(); 
     return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
   }
 
   Future<void> saveAndLaunchFile(List<int> bytes, String fileName) async {
 
-    //Get the storage folder location using path_provider package.
+    
     String? path;
     if (Platform.isAndroid ||
         Platform.isIOS ||
@@ -278,7 +277,7 @@ class HomePageController extends GetxController {
       Get.back();
       showLoader.value=false;
       await open_file.OpenFile.open(
-          '$path/$fileName'); // this will give option pdf in another app
+          '$path/$fileName'); 
      } else if (Platform.isWindows) {
       await Process.run('start', <String>['$path\\$fileName'],
           runInShell: true);

@@ -12,7 +12,7 @@ class PdfViewerPage extends GetView<PdfViewerController>{
   Widget build(BuildContext context) {
    return Material(child: WillPopScope(
        onWillPop: () async {
-         // Get.snackbar("Press back arrow", "",snackPosition: SnackPosition.BOTTOM);
+         
          return true;
        },
        child: Scaffold(
@@ -34,7 +34,7 @@ class PdfViewerPage extends GetView<PdfViewerController>{
          )),
          IconButton(
            icon:  Icon(Icons.share,color: whiteColor,),
-           // icon: const Icon(Icons.more_vert),
+           
            tooltip: 'Download',
            onPressed: () async {
              print("on press hit");
@@ -47,63 +47,17 @@ class PdfViewerPage extends GetView<PdfViewerController>{
                  ),
                );
              } else {
-               // Fluttertoast.showToast(msg: "Failed to share");
+               
              }
 
 
-             /*  PopupMenuButton<int>(
-               offset: Offset(0, 100),
-               color: Colors.grey,
-               elevation: 2,
-
-               itemBuilder: (context) => [
-                 // PopupMenuItem 1
-                 const PopupMenuItem(
-                   value: 1,
-                   // row with 2 children
-                   child: Row(
-                     children: [
-                       Icon(Icons.star),
-                       SizedBox(
-                         width: 10,
-                       ),
-                       Text("Get The App")
-                     ],
-                   ),
-                 ),
-                 // PopupMenuItem 2
-               const  PopupMenuItem(
-                   value: 2,
-                   // row with two children
-                   child: Row(
-                     children: [
-                       Icon(Icons.chrome_reader_mode),
-                       SizedBox(
-                         width: 10,
-                       ),
-                       Text("About")
-                     ],
-                   ),
-                 ),
-               ],
-               // on selected we show the dialog box
-               onSelected: (value) {
-                 // if value 1 show dialog
-                 if (value == 1) {
-                   // _showDialog(context);
-                   // if value 2 show dialog
-                 } else if (value == 2) {
-                   // _showDialog(context);
-                 }
-               },
-             );
-           */  // handle the press
+               
            },
          ),
 
        ],
      ),
-     // body: DocumentViewer(filePath: controller.files,),
+     
      body: PDFView(
        filePath: controller.filePath,
        enableSwipe: true,
@@ -114,8 +68,8 @@ class PdfViewerPage extends GetView<PdfViewerController>{
          print("_pages.toString()");
          print(_pages.toString());
          controller.totalPages.value = _pages.toString();
-           // pages = _pages;
-           // isReady = true;
+           
+           
        },
        onError: (error) {
          print(error.toString());
@@ -124,7 +78,7 @@ class PdfViewerPage extends GetView<PdfViewerController>{
          print('$page: ${error.toString()}');
        },
        onViewCreated: (PDFViewController pdfViewController) {
-         // _controller.complete(pdfViewController);
+         
        },
        onPageChanged: (int? page, int? total) {
          if(page != null && total != null){
