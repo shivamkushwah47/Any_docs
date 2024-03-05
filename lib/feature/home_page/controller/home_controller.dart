@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'package:any_docs/core/constant/url_constant.dart';
+import 'package:any_docs/core/utils/loaderScreen.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,16 +15,21 @@ import 'package:open_file/open_file.dart' as open_file;
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:image_picker/image_picker.dart' as pic;
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+
 
 class HomePageController extends GetxController {
   // late StreamSubscription _intentSub;
   final _sharedFiles = <SharedMediaFile>[];
   RxBool isPasswordProtected = false.obs;
   RxBool openGallery = false.obs;
+  RxBool showLoader = false.obs;
   TextEditingController passwordTextController = TextEditingController();
 
   @override
   void onInit() {
+    FlutterNativeSplash.remove();
+
     // Listen to media sharing coming from outside the app while the app is in the memory.
     ReceiveSharingIntent.getMediaStream().listen((value) {
       _sharedFiles.clear();
@@ -34,6 +40,9 @@ class HomePageController extends GetxController {
       print(_sharedFiles.map((f) => f.toMap()));
       if (value.isNotEmpty) {
         if (_sharedFiles[0].path.contains(".pdf")) {
+              print('_sharedFiles[0].path',);
+              print(_sharedFiles[0].path,);
+              print(  _sharedFiles[0].path.substring(0, 12));
           Get.toNamed(RouteConstant.pdfViewerPage, arguments: [
             _sharedFiles[0].path,
             _sharedFiles[0].path.substring(0, 12)
@@ -188,6 +197,19 @@ class HomePageController extends GetxController {
           maxHeight: 1000, //  max height of images.
           maxWidth: 1000); //  max width of images.
       if (pickedFile.isNotEmpty) {
+        showLoader.value==true?showDialog(
+          context: Get.overlayContext!,
+          barrierDismissible: true,
+          builder: (_) => PopScope(
+            canPop:  false,
+            onPopInvoked: (didPop) {
+            },
+            child:  Center(child: Loading()),
+          ),
+        ): const Center();
+
+        showLoader.value=true;
+
         for (var image in pickedFile) {
           PdfPage page = document.pages.add(); //this will add page in pdf
           final PdfImage bitImage = PdfBitmap(await _readImageData(image));
@@ -204,6 +226,18 @@ class HomePageController extends GetxController {
     } else {
       XFile? cameraFile = await picker.pickImage(source: ImageSource.camera);
       if(cameraFile != null){
+        showLoader.value=true;
+        showLoader.value==true?showDialog(
+          context: Get.overlayContext!,
+          barrierDismissible: true,
+          builder: (_) => PopScope(
+            canPop:  false,
+            onPopInvoked: (didPop) {
+            },
+            child:  Center(child: Loading()),
+          ),
+        ): const Center();
+
         PdfPage page = document.pages.add(); //this will add page in pdf
         final PdfImage image = PdfBitmap(await _readImageData(cameraFile));
         page.graphics.drawImage(
@@ -214,7 +248,7 @@ class HomePageController extends GetxController {
         saveAndLaunchFile(bytes, '${DateTime.now().toString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').trim()}.pdf');
       }
     }
-    Get.back();
+    // Get.back();
   }
 
   Future<List<int>> _readImageData(name) async {
@@ -223,6 +257,7 @@ class HomePageController extends GetxController {
   }
 
   Future<void> saveAndLaunchFile(List<int> bytes, String fileName) async {
+
     //Get the storage folder location using path_provider package.
     String? path;
     if (Platform.isAndroid ||
@@ -239,13 +274,12 @@ class HomePageController extends GetxController {
     File(Platform.isWindows ? '$path\\$fileName' : '$path/$fileName');
     await file.writeAsBytes(bytes, flush: true);
     if (Platform.isAndroid || Platform.isIOS) {
-      //Launch the file (used open_file package)
-      print(path);
-      print(fileName);
+      Get.back();
+      Get.back();
+      showLoader.value=false;
       await open_file.OpenFile.open(
           '$path/$fileName'); // this will give option pdf in another app
-      // Get.toNamed(RouteConstant.pdfViewerPage,arguments: [path,fileName]);
-    } else if (Platform.isWindows) {
+     } else if (Platform.isWindows) {
       await Process.run('start', <String>['$path\\$fileName'],
           runInShell: true);
     } else if (Platform.isMacOS) {
