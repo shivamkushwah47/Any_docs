@@ -64,10 +64,87 @@ class HomePageController extends GetxController {
       print(_sharedFiles.map((f) => f.toMap()));
       if (value.isNotEmpty) {
         if (_sharedFiles[0].path.contains(".pdf")) {
+          bool isProtected = await isPdgProtected(_sharedFiles[0].path);
+          if(!isProtected){
           Get.toNamed(RouteConstant.pdfViewerPage, arguments: [
             _sharedFiles[0].path,
             _sharedFiles[0].path.substring(0, 12)
           ]);
+          } else{
+            Get.defaultDialog(
+                title: "Security Alert!",
+                content: Column(
+                  children: [
+                    const Text("PDF is password protected."),
+                    TextFormField(
+                      controller: passwordTextController,
+                      decoration:
+                      const InputDecoration(labelText: "Enter password"),
+                    ),
+                    ElevatedButton(
+                        onPressed: () async {
+                          try {
+                            Get.back();
+                            showDialog(
+                              context: Get.overlayContext!,
+                              builder: (_) =>
+                              const Center(child: CircularProgressIndicator()),
+                            );
+                            await Future.delayed(const Duration(seconds: 2));
+                            Future<List<int>> readDocumentData(String name) async {
+                              print("namenamenamenamejg;sdf;name");
+                              print(name);
+
+                              File file = File(name);
+                              Uint8List bytes = await file.readAsBytes();
+
+                              ByteData byteData = bytes.buffer.asByteData();
+
+                              final ByteData data = byteData;
+                              return data.buffer.asUint8List(
+                                  data.offsetInBytes, data.lengthInBytes);
+                            }
+
+                            Future<void> launchPdf(
+                                List<int> bytes, String fileName) async {
+                              Directory? directory =
+                              await getExternalStorageDirectory();
+
+                              String path = directory!.path;
+                              File file = File('$path/$fileName');
+                              await file.writeAsBytes(bytes, flush: true);
+                              Get.back();
+                              Get.toNamed(RouteConstant.pdfViewerPage,
+                                  arguments: ['$path/$fileName', fileName]);
+                            }
+
+                            PdfDocument document = PdfDocument(
+                                inputBytes: await readDocumentData(_sharedFiles[0].path),
+                                password: passwordTextController.text);
+                            debugPrint('controller.passwordTextController.text');
+                            debugPrint(passwordTextController.text);
+                            PdfSecurity security = document.security;
+                            security.userPassword = '';
+                            List<int> bytes = await document.save();
+                            document.dispose();
+                            await launchPdf(bytes, _sharedFiles[0].path.substring(0,5));
+                          } catch (e) {
+                            Get.back();
+                            if (e.toString().contains('The password is invalid')) {
+                              Get.defaultDialog(
+                                  title: 'Invalid Password',
+                                  content: ElevatedButton(
+                                      onPressed: () {
+                                        Get.back();
+                                      },
+                                      child: const Text('ok')));
+                            }
+                          }
+                        },
+                        child: const Text('Enter'))
+                  ],
+                ));
+          }
         }
         ReceiveSharingIntent.reset();
       }
@@ -288,4 +365,28 @@ class HomePageController extends GetxController {
           runInShell: true);
     }
   }
+
+
+  Future<bool> isPdgProtected(path) async {
+    bool isEncrypted(List<int> bytes) {
+      final signature = bytes.sublist(0, 8);
+      final String hexSignature =
+      signature.map((b) => b.toRadixString(16).padLeft(2, '0')).join('');
+      log('hexSignature.toUpperCase()');
+      log('hex string: ${hexSignature.toUpperCase()}');
+      return hexSignature.toUpperCase() ==
+          '255044462D312E34';
+    }
+
+    File file = File(path);
+    List<int> bytes = await file.readAsBytes();
+
+    if (isEncrypted(bytes)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+
 }
