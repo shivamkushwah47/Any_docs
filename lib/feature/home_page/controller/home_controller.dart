@@ -266,23 +266,23 @@ class HomePageController extends GetxController {
   Future<void> convertImageToPdf() async {
     final ImagePicker picker = ImagePicker();
     PdfDocument document = PdfDocument();
-
+    showDialog(
+      context: Get.overlayContext!,
+      barrierDismissible: true,
+      builder: (_) => PopScope(
+        canPop:  false,
+        onPopInvoked: (didPop) {
+        },
+        child:  Center(child: Loading()),
+      ),
+    );
     if (openGallery.value == true) {
       final List<XFile> pickedFile = await picker.pickMultiImage(
           imageQuality: 100,
           maxHeight: 1000, 
           maxWidth: 1000); 
       if (pickedFile.isNotEmpty) {
-        showLoader.value==true?showDialog(
-          context: Get.overlayContext!,
-          barrierDismissible: true,
-          builder: (_) => PopScope(
-            canPop:  false,
-            onPopInvoked: (didPop) {
-            },
-            child:  Center(child: Loading()),
-          ),
-        ): const Center();
+
 
         showLoader.value=true;
 
@@ -297,7 +297,7 @@ class HomePageController extends GetxController {
         
         saveAndLaunchFile(bytes, '${DateTime.now().toString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').trim()}.pdf');
       } else {
-        
+        Get.back();
       }
     } else {
       XFile? cameraFile = await picker.pickImage(source: ImageSource.camera);
@@ -322,6 +322,9 @@ class HomePageController extends GetxController {
         document.dispose();
         
         saveAndLaunchFile(bytes, '${DateTime.now().toString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').trim()}.pdf');
+      }
+      else{
+        Get.back();
       }
     }
     

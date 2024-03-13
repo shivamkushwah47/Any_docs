@@ -15,18 +15,19 @@ class HomePageView extends GetView<HomePageController> {
         title: const Center(
           child: Text('Any Docs',
               style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              SizedBox(height: 20),
-              ElevatedButton(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 20),
+            SizedBox(
+              width: Get.width,
+              height: 80,
+              child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    minimumSize: Size(Get.width, 80),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -39,10 +40,14 @@ class HomePageView extends GetView<HomePageController> {
                     style:
                         TextStyle(fontWeight: FontWeight.bold, color: appColor),
                   )),
-              SizedBox(height: 20),
-              ElevatedButton(
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: Get.width,
+              height: 80,
+              child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    minimumSize: Size(Get.width, 80),
+
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -65,10 +70,13 @@ class HomePageView extends GetView<HomePageController> {
                     style:
                         TextStyle(fontWeight: FontWeight.bold, color: appColor),
                   )),
-              SizedBox(height: 20),
-              ElevatedButton(
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: Get.width,
+              height: 80,
+              child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    minimumSize: Size(Get.width, 80),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -88,10 +96,13 @@ class HomePageView extends GetView<HomePageController> {
                     style:
                         TextStyle(fontWeight: FontWeight.bold, color: appColor),
                   )),
-              SizedBox(height: 20),
-              ElevatedButton(
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: Get.width,
+              height: 80,
+              child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    minimumSize: Size(Get.width, 80),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -99,9 +110,6 @@ class HomePageView extends GetView<HomePageController> {
                   onPressed: () {
                     Get.bottomSheet(
                         backgroundColor: Colors.white,
-                        barrierColor: Colors.red[50],
-                        isDismissible: true,
-                        enableDrag: true,
                         SizedBox(
                           height: Get.height * 0.20,
                           child: Row(
@@ -157,8 +165,8 @@ class HomePageView extends GetView<HomePageController> {
                     style:
                         TextStyle(fontWeight: FontWeight.bold, color: appColor),
                   )),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
