@@ -6,6 +6,10 @@ import 'package:any_docs/core/utils/loaderScreen.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pdf/pdf.dart' as pdf_plugin;
+import 'package:pdf/widgets.dart' as pw;
+import 'package:image/image.dart' as img;
+import 'dart:ui' as ui;
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -266,6 +270,8 @@ class HomePageController extends GetxController {
   Future<void> convertImageToPdf() async {
     final ImagePicker picker = ImagePicker();
     PdfDocument document = PdfDocument();
+    final pw.Document pdf = pw.Document();
+
     showDialog(
       context: Get.overlayContext!,
       barrierDismissible: true,
@@ -276,52 +282,112 @@ class HomePageController extends GetxController {
         child:  Center(child: Loading()),
       ),
     );
+
     if (openGallery.value == true) {
       final List<XFile> pickedFile = await picker.pickMultiImage(
           imageQuality: 100,
-          maxHeight: 1000, 
-          maxWidth: 1000); 
+          // maxHeight: 1000,
+          // maxWidth: 1000
+      );
       if (pickedFile.isNotEmpty) {
-
-
         showLoader.value=true;
-
-        for (var image in pickedFile) {
-          PdfPage page = document.pages.add(); 
-          final PdfImage bitImage = PdfBitmap(await _readImageData(image));
-          page.graphics.drawImage(
-              bitImage, Rect.fromLTWH(0, 0, page.size.width, page.size.height));
+        for (var xFile in pickedFile) {
+          final bytes = await xFile.readAsBytes();
+          final dimension = await _loadImage(xFile);
+          final pdfImage = pw.MemoryImage(bytes);
+          pdf.addPage(
+            pw.Page(
+              margin: pw.EdgeInsets.all(2),
+              pageFormat: pdf_plugin.PdfPageFormat.a4,
+              build: (pw.Context context) {
+                return pw.Center(
+                  child: pw.Container(
+                      height: double.parse(dimension.height.toString()),
+                      width: double.parse(dimension.width.toString()),
+                      child: pw.Image(pdfImage)
+                  ),
+                );
+              },
+            ),
+          );
         }
-        List<int> bytes = await document.save();
-        document.dispose();
-        
-        saveAndLaunchFile(bytes, '${DateTime.now().toString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').trim()}.pdf');
+
+        /*for (var image in pickedFile) {
+          final Uint8List imageData = await image.readAsBytes();
+          // PdfPage page = document.pages.add();
+          final PdfImage bitImage = PdfBitmap(await _readImageData(image));
+          // page.graphics.drawImage(
+          //     bitImage, Rect.fromLTWH(0, 0, imageSize.width, imageSize.height));
+          pdf.addPage(
+            pw.Page(
+              build: (pw.Context context) {
+                return pw.Center(
+                  child: pw.Image(
+                    pw.MemoryImage(imageData),
+                    width: imageSize.width,
+                    height: imageSize.height,
+                  ),
+                );
+              },
+            )
+          );
+        }*/
+        // List<int> bytes = await document.save();
+        // document.dispose();
+        final bytes = await pdf.save();
+        final output = await getTemporaryDirectory();
+        final file = File('${output.path}/${'${DateTime.now().toString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').trim()}.pdf'}');
+        await file.writeAsBytes(bytes);
+        Get.back();
+        Get.back();
+        Get.toNamed(RouteConstant.pdfViewerPage,  arguments: [file.path, file.path.substring(0,5)]);
+        // saveAndLaunchFile(bytes, '${DateTime.now().toString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').trim()}.pdf');
       } else {
         Get.back();
       }
-    } else {
+    }
+
+    /// Camera clicked image
+    else {
       XFile? cameraFile = await picker.pickImage(source: ImageSource.camera);
       if(cameraFile != null){
         showLoader.value=true;
-        showLoader.value==true?showDialog(
-          context: Get.overlayContext!,
-          barrierDismissible: true,
-          builder: (_) => PopScope(
-            canPop:  false,
-            onPopInvoked: (didPop) {
+        final cameraBytes = await cameraFile.readAsBytes();
+        final dimension = await _loadImage(cameraFile);
+        final pdfImage = pw.MemoryImage(cameraBytes);
+        pdf.addPage(
+          pw.Page(
+            margin: pw.EdgeInsets.all(2),
+            pageFormat: pdf_plugin.PdfPageFormat.a4,
+            build: (pw.Context context) {
+              return pw.Center(
+                child: pw.Container(
+                    height: double.parse(dimension.height.toString()),
+                    width: double.parse(dimension.width.toString()),
+                    child: pw.Image(pdfImage)
+                ),
+              );
             },
-            child:  Center(child: Loading()),
           ),
-        ): const Center();
+        );
 
-        PdfPage page = document.pages.add(); 
-        final PdfImage image = PdfBitmap(await _readImageData(cameraFile));
-        page.graphics.drawImage(
-            image, Rect.fromLTWH(0, 0, page.size.width, page.size.height));
-        List<int> bytes = await document.save();
-        document.dispose();
-        
-        saveAndLaunchFile(bytes, '${DateTime.now().toString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').trim()}.pdf');
+
+        final bytes = await pdf.save();
+        final output = await getTemporaryDirectory();
+        final file = File('${output.path}/${'${DateTime.now().toString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').trim()}.pdf'}');
+        await file.writeAsBytes(bytes);
+        Get.back();
+        Get.back();
+        Get.toNamed(RouteConstant.pdfViewerPage,  arguments: [file.path, file.path.substring(0,5)]);
+
+        // PdfPage page = document.pages.add();
+        // final PdfImage image = PdfBitmap(await _readImageData(cameraFile));
+        // page.graphics.drawImage(
+        //     image, Rect.fromLTWH(0, 0, page.size.width, page.size.height));
+        // List<int> bytes = await document.save();
+        // document.dispose();
+        //
+        // saveAndLaunchFile(bytes, '${DateTime.now().toString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').trim()}.pdf');
       }
       else{
         Get.back();
@@ -391,5 +457,17 @@ class HomePageController extends GetxController {
     }
   }
 
+  Future<ui.Image> _loadImage(XFile file) async {
+    Uint8List bytes = await file.readAsBytes();
+    final ui.Codec codec = await ui.instantiateImageCodec(bytes);
+    final ui.FrameInfo frameInfo = await codec.getNextFrame();
+    return frameInfo.image;
+  }
+
+  /*Future<Size> _getImageSize(XFile imageFile) async {
+    final bytes = await imageFile.readAsBytes();
+    final image = await decodeImageFromList(bytes);
+    return Size(image.width.toDouble(), image.height.toDouble());
+  }*/
 
 }
