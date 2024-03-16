@@ -1,24 +1,26 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:any_docs/core/constant/url_constant.dart';
 import 'package:any_docs/core/utils/loaderScreen.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:pdf/pdf.dart' as pdf_plugin;
-import 'package:pdf/widgets.dart' as pw;
-import 'package:image/image.dart' as img;
-import 'dart:ui' as ui;
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:open_file/open_file.dart' as open_file;
 import 'package:path_provider/path_provider.dart' as path_provider;
+import 'package:path_provider/path_provider.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:pdf/pdf.dart' as pdf_plugin;
+import 'package:pdf/widgets.dart' as pw;
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
+
+
 
 
 class HomePageController extends GetxController {
@@ -37,15 +39,15 @@ class HomePageController extends GetxController {
     ReceiveSharingIntent.getMediaStream().listen((value) {
       _sharedFiles.clear();
       _sharedFiles.addAll(value);
+      // debugPrint("app is in memory");
+      // print(value);
       debugPrint("app is in memory");
-      print(value);
-      debugPrint("app is in memory");
-      print(_sharedFiles.map((f) => f.toMap()));
+      // print(_sharedFiles.map((f) => f.toMap()));
       if (value.isNotEmpty) {
         if (_sharedFiles[0].path.contains(".pdf")) {
-              print('_sharedFiles[0].path',);
-              print(_sharedFiles[0].path,);
-              print(  _sharedFiles[0].path.substring(0, 12));
+              // print('_sharedFiles[0].path',);
+              // print(_sharedFiles[0].path,);
+              // print(  _sharedFiles[0].path.substring(0, 12));
           Get.toNamed(RouteConstant.pdfViewerPage, arguments: [
             _sharedFiles[0].path,
             _sharedFiles[0].path.substring(0, 12)
@@ -62,10 +64,10 @@ class HomePageController extends GetxController {
     ReceiveSharingIntent.getInitialMedia().then((value) async {
       _sharedFiles.clear();
       _sharedFiles.addAll(value);
+      // debugPrint("app is in closed");
+      // print(value);
       debugPrint("app is in closed");
-      print(value);
-      debugPrint("app is in closed");
-      print(_sharedFiles.map((f) => f.toMap()));
+      // print(_sharedFiles.map((f) => f.toMap()));
       if (value.isNotEmpty) {
         if (_sharedFiles[0].path.contains(".pdf")) {
           bool isProtected = await isPdgProtected(_sharedFiles[0].path);
@@ -96,8 +98,7 @@ class HomePageController extends GetxController {
                             );
                             await Future.delayed(const Duration(seconds: 2));
                             Future<List<int>> readDocumentData(String name) async {
-                              print("namenamenamenamejg;sdf;name");
-                              print(name);
+                              // print(name);
 
                               File file = File(name);
                               Uint8List bytes = await file.readAsBytes();
@@ -160,7 +161,7 @@ class HomePageController extends GetxController {
 
   onPdfButtonPressed() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
-        allowMultiple: true, type: FileType.custom, allowedExtensions: ['pdf']);
+        allowMultiple: true, type: FileType.image, allowedExtensions: ['pdf']);
     String fileName = result?.files[0].name ?? '';
     debugPrint(result.toString());
     if (result != null) {
@@ -209,8 +210,8 @@ class HomePageController extends GetxController {
                         );
                         await Future.delayed(const Duration(seconds: 2));
                         Future<List<int>> readDocumentData(String name) async {
-                          print("namenamenamenamejg;sdf;name");
-                          print(name);
+                          // print("namenamenamenamejg;sdf;name");
+                          // print(name);
 
                           File file = File(name);
                           Uint8List bytes = await file.readAsBytes();
@@ -269,7 +270,6 @@ class HomePageController extends GetxController {
 
   Future<void> convertImageToPdf() async {
     final ImagePicker picker = ImagePicker();
-    PdfDocument document = PdfDocument();
     final pw.Document pdf = pw.Document();
 
     showDialog(
@@ -312,26 +312,6 @@ class HomePageController extends GetxController {
           );
         }
 
-        /*for (var image in pickedFile) {
-          final Uint8List imageData = await image.readAsBytes();
-          // PdfPage page = document.pages.add();
-          final PdfImage bitImage = PdfBitmap(await _readImageData(image));
-          // page.graphics.drawImage(
-          //     bitImage, Rect.fromLTWH(0, 0, imageSize.width, imageSize.height));
-          pdf.addPage(
-            pw.Page(
-              build: (pw.Context context) {
-                return pw.Center(
-                  child: pw.Image(
-                    pw.MemoryImage(imageData),
-                    width: imageSize.width,
-                    height: imageSize.height,
-                  ),
-                );
-              },
-            )
-          );
-        }*/
         // List<int> bytes = await document.save();
         // document.dispose();
         final bytes = await pdf.save();
@@ -380,14 +360,6 @@ class HomePageController extends GetxController {
         Get.back();
         Get.toNamed(RouteConstant.pdfViewerPage,  arguments: [file.path, file.path.substring(0,5)]);
 
-        // PdfPage page = document.pages.add();
-        // final PdfImage image = PdfBitmap(await _readImageData(cameraFile));
-        // page.graphics.drawImage(
-        //     image, Rect.fromLTWH(0, 0, page.size.width, page.size.height));
-        // List<int> bytes = await document.save();
-        // document.dispose();
-        //
-        // saveAndLaunchFile(bytes, '${DateTime.now().toString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').trim()}.pdf');
       }
       else{
         Get.back();
@@ -396,10 +368,6 @@ class HomePageController extends GetxController {
     
   }
 
-  Future<List<int>> _readImageData(name) async {
-    var data = await name!.readAsBytes(); 
-    return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-  }
 
   Future<void> saveAndLaunchFile(List<int> bytes, String fileName) async {
 
@@ -464,10 +432,10 @@ class HomePageController extends GetxController {
     return frameInfo.image;
   }
 
-  /*Future<Size> _getImageSize(XFile imageFile) async {
-    final bytes = await imageFile.readAsBytes();
-    final image = await decodeImageFromList(bytes);
-    return Size(image.width.toDouble(), image.height.toDouble());
-  }*/
+
+
+  ///*************************************************************************************************//////////
+
+
 
 }
