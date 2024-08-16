@@ -36,7 +36,7 @@ class HomePageController extends GetxController {
     FlutterNativeSplash.remove();
 
     
-    ReceiveSharingIntent.getMediaStream().listen((value) {
+    ReceiveSharingIntent.instance.getMediaStream().listen((value) {
       _sharedFiles.clear();
       _sharedFiles.addAll(value);
       // debugPrint("app is in memory");
@@ -52,16 +52,16 @@ class HomePageController extends GetxController {
             _sharedFiles[0].path,
             _sharedFiles[0].path.substring(0, 12)
           ]);
-          ReceiveSharingIntent.reset();
+          ReceiveSharingIntent.instance.reset();
         }
       }
-      ReceiveSharingIntent.reset();
+      ReceiveSharingIntent.instance.reset();
     }, onError: (err) {
       debugPrint("getIntentDataStream error: $err");
     });
 
     
-    ReceiveSharingIntent.getInitialMedia().then((value) async {
+    ReceiveSharingIntent.instance.getInitialMedia().then((value) async {
       _sharedFiles.clear();
       _sharedFiles.addAll(value);
       // debugPrint("app is in closed");
@@ -151,9 +151,9 @@ class HomePageController extends GetxController {
                 ));
           }
         }
-        ReceiveSharingIntent.reset();
+        ReceiveSharingIntent.instance.reset();
       }
-      ReceiveSharingIntent.reset();
+      ReceiveSharingIntent.instance.reset();
     });
 
     super.onInit();
@@ -161,7 +161,7 @@ class HomePageController extends GetxController {
 
   onPdfButtonPressed() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
-        allowMultiple: true, type: FileType.image, allowedExtensions: ['pdf']);
+        allowMultiple: true, type: FileType.custom, allowedExtensions: ['pdf']);
     String fileName = result?.files[0].name ?? '';
     debugPrint(result.toString());
     if (result != null) {
