@@ -159,22 +159,40 @@ class HomePageController extends GetxController {
     super.onInit();
   }
 
+  Future<List<int>> readDocumentData(String path) async {
+    // print("namenamenamenamejg;sdf;name");
+    // print(name);
+
+    File file = File(path);
+    Uint8List bytes = await file.readAsBytes();
+
+    ByteData byteData = bytes.buffer.asByteData();
+
+    final ByteData data = byteData;
+    return data.buffer.asUint8List(
+        data.offsetInBytes, data.lengthInBytes);
+  }
+
+  Future<void> launchPdf(
+      List<int> bytes, String fileName) async {
+    Directory? directory =
+    await getExternalStorageDirectory();
+
+    String path = directory!.path;
+    File file = File('$path/$fileName');
+    await file.writeAsBytes(bytes, flush: true);
+    Get.back();
+    Get.toNamed(RouteConstant.pdfViewerPage,
+        arguments: ['$path/$fileName', fileName]);
+  }
+
   onPdfButtonPressed() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
         allowMultiple: true, type: FileType.custom, allowedExtensions: ['pdf']);
-    String fileName = result?.files[0].name ?? '';
+     String fileName = result?.files[0].name ?? '';
     debugPrint(result.toString());
     if (result != null) {
       List<File> files = result.paths.map((path) => File(path!)).toList();
-      bool isEncrypted(List<int> bytes) {
-        final signature = bytes.sublist(0, 8);
-        final String hexSignature =
-        signature.map((b) => b.toRadixString(16).padLeft(2, '0')).join('');
-        log('hexSignature.toUpperCase()');
-        log('hex string: ${hexSignature.toUpperCase()}');
-        return hexSignature.toUpperCase() ==
-            '255044462D312E34'; 
-      }
 
       File file = File(files[0].path);
       List<int> bytes = await file.readAsBytes();
@@ -188,80 +206,87 @@ class HomePageController extends GetxController {
       if (isPasswordProtected.value == false) {
         Get.toNamed(RouteConstant.pdfViewerPage,
             arguments: [files[0].path, fileName]);
-      } else {
-        Get.defaultDialog(
-            title: "Security Alert!",
-            content: Column(
-              children: [
-                const Text("PDF is password protected."),
-                TextFormField(
-                  controller: passwordTextController,
-                  decoration:
-                  const InputDecoration(labelText: "Enter password"),
-                ),
-                ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        Get.back();
-                        showDialog(
-                          context: Get.overlayContext!,
-                          builder: (_) =>
-                          const Center(child: CircularProgressIndicator()),
-                        );
-                        await Future.delayed(const Duration(seconds: 2));
-                        Future<List<int>> readDocumentData(String name) async {
-                          // print("namenamenamenamejg;sdf;name");
-                          // print(name);
+      }
+      else {
 
-                          File file = File(name);
-                          Uint8List bytes = await file.readAsBytes();
-                          
-                          ByteData byteData = bytes.buffer.asByteData();
+        try{
+          PdfDocument document = PdfDocument(
+              inputBytes: await readDocumentData(files[0].path),
+              password: '');
+          PdfSecurity pdfSecurity = document.security;
+          if(pdfSecurity.ownerPassword == ""&&pdfSecurity.userPassword ==""){
+            List<int> bytes = await document.save();
+            document.dispose();
+            await launchPdf(bytes, fileName);
+        }
+        } catch (e) {
+          print("checking first tine with empty string");
+          print(e.toString());
+          Get.back();
+          if (e.toString().contains('The password is invalid')) {
+            Get.defaultDialog(
+                title: "Security Alert!",
+                content: Column(
+                  children: [
+                    const Text("PDF is password protected."),
+                    Center(
+                      child: TextFormField(
+                        controller: passwordTextController,
+                        decoration:
+                        const InputDecoration(labelText: "Enter password"),
+                      ),
+                    ),
+                    Visibility(child: Text("Invalid Password"),visible: true,),
+                    ElevatedButton(
+                        onPressed: () async {
+                          try {
+                            Get.back();
+                            showDialog(
+                              context: Get.overlayContext!,
+                              builder: (_) =>
+                              const Center(child: CircularProgressIndicator()),
+                            );
+                            await Future.delayed(const Duration(seconds: 2));
 
-                          final ByteData data = byteData;
-                          return data.buffer.asUint8List(
-                              data.offsetInBytes, data.lengthInBytes);
-                        }
 
-                        Future<void> launchPdf(
-                            List<int> bytes, String fileName) async {
-                          Directory? directory =
-                          await getExternalStorageDirectory();
 
-                          String path = directory!.path;
-                          File file = File('$path/$fileName');
-                          await file.writeAsBytes(bytes, flush: true);
-                          Get.back();
-                          Get.toNamed(RouteConstant.pdfViewerPage,
-                              arguments: ['$path/$fileName', fileName]);
-                        }
 
-                        PdfDocument document = PdfDocument(
-                            inputBytes: await readDocumentData(files[0].path),
-                            password: passwordTextController.text);
-                        debugPrint('controller.passwordTextController.text');
-                        debugPrint(passwordTextController.text);
-                        PdfSecurity security = document.security;
-                        security.userPassword = '';
-                        List<int> bytes = await document.save();
-                        document.dispose();
-                        await launchPdf(bytes, fileName);
-                      } catch (e) {
-                        Get.back();
-                        if (e.toString().contains('The password is invalid')) {
-                          Get.defaultDialog(
-                              title: 'Invalid Password',
-                              content: ElevatedButton(
-                                  onPressed: () {
-                                    Get.back();
-                                  },
-                                  child: const Text('ok')));
-                        }
-                      }
-                    },
-                    child: const Text('Enter'))
-              ],
-            ));
+                            PdfDocument document = PdfDocument(
+                                inputBytes: await readDocumentData(files[0].path),
+                                password: passwordTextController.text);
+                            debugPrint('controller.passwordTextController.text');
+                            debugPrint(passwordTextController.text);
+                            debugPrint(document.onPdfPassword.toString());
+                            debugPrint(document.security.encryptionOptions.toString());
+                            debugPrint(document.security.userPassword.toString());
+                            debugPrint(document.security.ownerPassword.toString());
+                            PdfSecurity security = document.security;
+                            // security.userPassword = '';
+                            List<int> bytes = await document.save();
+                            document.dispose();
+                            await launchPdf(bytes, fileName);
+                            passwordTextController.clear();
+
+                          } catch (e) {
+                            Get.back();
+                            passwordTextController.clear();
+                            if (e.toString().contains('The password is invalid')) {
+                              Get.defaultDialog(
+                                  title: 'Invalid Password',
+                                  content: ElevatedButton(
+                                      onPressed: () {
+                                        Get.back();
+                                      },
+                                      child: const Text('ok')));
+                            }
+                          }
+                        },
+                        child: const Text('Enter'))
+                  ],
+                ));
+          }
+        }
+
       }
     } else {
       
@@ -405,7 +430,7 @@ class HomePageController extends GetxController {
 
 
   Future<bool> isPdgProtected(path) async {
-    bool isEncrypted(List<int> bytes) {
+    /*bool isEncrypted(List<int> bytes) {
       final signature = bytes.sublist(0, 8);
       final String hexSignature =
       signature.map((b) => b.toRadixString(16).padLeft(2, '0')).join('');
@@ -413,7 +438,7 @@ class HomePageController extends GetxController {
       log('hex string: ${hexSignature.toUpperCase()}');
       return hexSignature.toUpperCase() ==
           '255044462D312E34';
-    }
+    }*/
 
     File file = File(path);
     List<int> bytes = await file.readAsBytes();
@@ -430,6 +455,80 @@ class HomePageController extends GetxController {
     final ui.Codec codec = await ui.instantiateImageCodec(bytes);
     final ui.FrameInfo frameInfo = await codec.getNextFrame();
     return frameInfo.image;
+  }
+
+  bool isEncrypted(List<int> bytes) {
+    final signature = bytes.sublist(0, 8);
+    final String hexSignature =
+    signature.map((b) => b.toRadixString(16).padLeft(2, '0')).join('');
+    log('hexSignature.toUpperCase()');
+    log('hex string: ${hexSignature.toUpperCase()}');
+    return hexSignature.toUpperCase() ==
+        '255044462D312E34';
+  }
+
+
+  PdfSecurity? uniqueSecurityCode;
+  isActualProtected(files,fileName) async {
+    try {
+      Get.back();
+      showDialog(
+        context: Get.overlayContext!,
+        builder: (_) =>
+        const Center(child: CircularProgressIndicator()),
+      );
+      await Future.delayed(const Duration(seconds: 2));
+      Future<List<int>> readDocumentData(String name) async {
+        // print("namenamenamenamejg;sdf;name");
+        // print(name);
+
+        File file = File(name);
+        Uint8List bytes = await file.readAsBytes();
+
+        ByteData byteData = bytes.buffer.asByteData();
+
+        final ByteData data = byteData;
+        return data.buffer.asUint8List(
+            data.offsetInBytes, data.lengthInBytes);
+      }
+
+      Future<void> launchPdf(
+          List<int> bytes, String fileName) async {
+        Directory? directory =
+        await getExternalStorageDirectory();
+
+        String path = directory!.path;
+        File file = File('$path/$fileName');
+        await file.writeAsBytes(bytes, flush: true);
+        Get.back();
+        Get.toNamed(RouteConstant.pdfViewerPage,
+            arguments: ['$path/$fileName', fileName]);
+      }
+
+      PdfDocument document = PdfDocument(
+          inputBytes: await readDocumentData(files[0].path),
+          password: '');
+    debugPrint('controller.passwordTextController.text');
+    uniqueSecurityCode = document.security;
+    // print(security.ownerPassword);
+    // print(security.userPassword);
+    // security.userPassword = '';
+    List<int> bytes = await document.save();
+    document.dispose();
+    await launchPdf(bytes, fileName);
+    } catch (e) {
+      print("security code print in error ");
+    Get.back();
+    if (e.toString().contains('The password is invalid')) {
+    Get.defaultDialog(
+    title: 'Invalid Password',
+    content: ElevatedButton(
+    onPressed: () {
+    Get.back();
+    },
+    child: const Text('ok')));
+    }
+    }
   }
 
 
